@@ -27,7 +27,7 @@ class FindUris(Module, common.FileSystem, common.PackageManager, common.Provider
                 response = None
             
             if response == None:
-                self.stdout.write("No respone from content URI:      %s\n" % uri)
+                self.stdout.write("No response from content URI:      %s\n" % uri)
             else:
                 self.stdout.write("Got a response from content Uri:  %s\n" % uri)
 
