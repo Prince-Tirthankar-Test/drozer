@@ -142,12 +142,20 @@ class ModuleInstaller(object):
         index = set([])
         
         for url in Remote.all():
-            source = Remote.get(url).download("INDEX.xml")
+            try:
+                source = Remote.get(url).download("INDEX.xml")
+            except NetworkException as e:
+                print("[!]", e)
+                print(f'Skipping {url}...\n')
+                source = None
             
             if source != None:
-                modules = xml.fromstring(source)
-
-                index = index.union(map(lambda m: ModuleInfo(url, m.attrib['name'], m.find("./description").text), modules.findall("./module")))
+                try:
+                    modules = xml.fromstring(source)
+                    index = index.union(map(lambda m: ModuleInfo(url, m.attrib['name'], m.find("./description").text), modules.findall("./module")))
+                except Exception as e:
+                    print(f'[!] Could not parse INDEX.xml at {url}. {e}')
+                    print(f'Skipping {url}...\n')
         
         return filter(lambda m: m != None and m != "", index)
 

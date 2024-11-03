@@ -1,7 +1,4 @@
-import http.client as httplib
-import io
-import urllib.request as urllib2
-from urllib.parse import urlparse
+import requests
 
 from drozer.configuration import Configuration
 
@@ -88,7 +85,7 @@ class Remote(object):
         try:
             return self.getPath(module)
         except Exception as e:
-            raise NetworkException()
+            raise NetworkException(str(e))
 
     def getPath(self, path):
         """
@@ -96,32 +93,9 @@ class Remote(object):
         """
 
         uri = self.buildPath(path)
-        # TODO: This parsing logic is ugly, but it Works™
-        parsed_uri = urlparse(uri)
-        host = parsed_uri.netloc
-        get_path = parsed_uri.path
-        scheme = parsed_uri.scheme
-        if(scheme == "https"):
-            conn = httplib.HTTPSConnection(host)
-        else:
-            conn = httplib.HTTPConnection(host)
-        conn.request("GET", get_path, headers={"Host": host})
-        response = conn.getresponse()
-        response.begin()
-        data = response.read()
-        response.close()
-
-        return data
-
-
-class FakeSocket(io.StringIO):
-    """
-    FakeSocket is used to interface between urllib2 and httplib, which aren't
-    totally compatible.
-    """
-
-    def makefile(self, *args, **kwargs):
-        return self
+        response = requests.get(uri)
+        response.raise_for_status()
+        return response.content
 
 
 class NetworkException(Exception):
@@ -129,11 +103,11 @@ class NetworkException(Exception):
     Raised if a Remote is not available, because of some network error.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, message="There was a problem accessing the remote."):
+        super().__init__(message)
 
     def __str__(self):
-        return "There was a problem accessing the remote."
+        return super().__str__()
 
 
 class UnknownRemote(Exception):
