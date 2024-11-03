@@ -1,7 +1,4 @@
-import http.client as httplib
-import io
-import urllib.request as urllib2
-from urllib.parse import urlparse
+import requests
 
 from drozer.configuration import Configuration
 
@@ -96,32 +93,8 @@ class Remote(object):
         """
 
         uri = self.buildPath(path)
-        # TODO: This parsing logic is ugly, but it Works™
-        parsed_uri = urlparse(uri)
-        host = parsed_uri.netloc
-        get_path = parsed_uri.path
-        scheme = parsed_uri.scheme
-        if(scheme == "https"):
-            conn = httplib.HTTPSConnection(host)
-        else:
-            conn = httplib.HTTPConnection(host)
-        conn.request("GET", get_path, headers={"Host": host})
-        response = conn.getresponse()
-        response.begin()
-        data = response.read()
-        response.close()
-
-        return data
-
-
-class FakeSocket(io.StringIO):
-    """
-    FakeSocket is used to interface between urllib2 and httplib, which aren't
-    totally compatible.
-    """
-
-    def makefile(self, *args, **kwargs):
-        return self
+        response = requests.get(uri)
+        return response.content
 
 
 class NetworkException(Exception):
