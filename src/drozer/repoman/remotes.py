@@ -85,7 +85,7 @@ class Remote(object):
         try:
             return self.getPath(module)
         except Exception as e:
-            raise NetworkException()
+            raise NetworkException(str(e))
 
     def getPath(self, path):
         """
@@ -94,6 +94,7 @@ class Remote(object):
 
         uri = self.buildPath(path)
         response = requests.get(uri)
+        response.raise_for_status()
         return response.content
 
 
@@ -102,11 +103,11 @@ class NetworkException(Exception):
     Raised if a Remote is not available, because of some network error.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, message="There was a problem accessing the remote."):
+        super().__init__(message)
 
     def __str__(self):
-        return "There was a problem accessing the remote."
+        return super().__str__()
 
 
 class UnknownRemote(Exception):
